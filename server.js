@@ -24,6 +24,12 @@ mongoose
   })
   .then(() => console.log("DB Connection Succesful"));
 
+//
+const todoListScheme = new mongoose.Schema({
+  name: {
+    type: String,
+  },
+});
 // creating a new document
 const itemOne = new list({
   name: "Buy Food",
@@ -34,10 +40,15 @@ const itemTwo = new list({
 const itemThree = new list({
   name: "Sleep",
 });
-const defaultItem = [];
+const defaultItem = [itemOne, itemTwo, itemThree];
 const workItems = [];
-console.log(list.find());
-// defaultItem.push(new list({ name: item }));
+
+const listSchema = {
+  name: String,
+  items: [todoListScheme],
+};
+
+const ColList = mongoose.model("ColList", listSchema);
 //
 app.set("view engine", "ejs");
 //
@@ -48,24 +59,28 @@ app.listen(port, () => {
 });
 app.get("/", (req, res) => {
   let day = date();
-
-  res.render("list", { listTitle: day, newListItem: defaultItem });
+  // console.log(list.find({}));
+  list.find({}).then((foundItems) => {
+    res.render("list", { listTitle: day, newListItem: foundItems });
+  });
 });
 app.post("/", (req, res) => {
   let item = req.body.newItem;
   if (req.body.list === "Work") {
-    // insert data in the DB
-    // workItems.push(item);
     list.insertMany(new list({ name: item }));
     defaultItem.push(new list({ name: item }));
     res.redirect("/work");
   } else {
-    // insert data in the DB
-    // defaultItem.push(item);
     list.insertMany(new list({ name: item }));
-    console.log(defaultItem);
     res.redirect("/");
   }
+});
+//
+app.post("/delete", (req, res) => {
+  // console.log(req.body.checkbox);
+  const checkedItemID = req.body.checkbox;
+  list.findById(checkedItemID).then((item) => list.deleteOne(item));
+  res.redirect("/");
 });
 //
 app.get("/work", (req, res) => {
@@ -77,4 +92,30 @@ app.post("/work", (req, res) => {
 //
 app.get("/about", (req, res) => {
   res.render("about");
+});
+//
+app.get("/:customListName", (req, res) => {
+  const customListTitle = req.params.customListName;
+  ColList.findOne({ name: customListTitle }).then((foundList) => {
+    if (!foundList) {
+      //create new List
+      const list = new ColList({
+        name: customListTitle,
+        items: defaultItem,
+      });
+      list.save();
+      res.redirect("/" + customListTitle);
+    } else {
+      // show existing list
+      res.render("list", {
+        listTitle: foundList.name,
+        newListItem: foundList.items,
+      });
+    }
+  });
+});
+
+app.post("/:customListName", (req, res) => {
+  let item = req.body.newItem;
+  console.log(item);
 });

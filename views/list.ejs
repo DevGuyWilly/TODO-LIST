@@ -4,10 +4,12 @@
     </div>
     <div class="box">
             <%  newListItem.forEach((value, index) => { %>
-                <div class="item">
-                    <input type="checkbox" name="" id="">
-                     <p><%- newListItem[index].name%></p>
-                </div>
+                <form action="/delete" method="post">
+                    <div class="item">
+                        <input type="checkbox" value="<%=value._id%>" name="checkbox" id="" onchange="this.form.submit()">
+                         <p><%- newListItem[index].name%></p>
+                    </div>
+                </form>
             <% }); %>            
         <form class="item" action="/" method="post">
             <input type="text" name="newItem" placeholder="New Item" autocomplete="off">
