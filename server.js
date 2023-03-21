@@ -59,7 +59,6 @@ app.listen(port, () => {
 });
 app.get("/", (req, res) => {
   let day = date();
-  // console.log(list.find({}));
   list.find({}).then((foundItems) => {
     res.render("list", { listTitle: "Today", newListItem: foundItems });
   });
@@ -67,7 +66,6 @@ app.get("/", (req, res) => {
 app.post("/", (req, res) => {
   let item = req.body.newItem;
   let listName = req.body.list;
-  // console.log(listName);
   if (listName === "Today") {
     //
     list.insertMany(new list({ name: item }));
@@ -75,31 +73,14 @@ app.post("/", (req, res) => {
   } else {
     // NEWLY CREATED ROUTE OR EXITING ROUTE
     ColList.findOne({ name: listName }).then((foundItem) => {
-      //   foundItem.forEach((item) => {
-      //     console.log(item.items);
-      //     // item.items.push(new list({ item }));
-      //   });
-      // });
-      // ColList.updateOne(foundItem.items.push(new list({ name: item })));
       foundItem.items.push(new list({ name: item }));
       foundItem.save();
-      console.log(foundItem.items);
       res.redirect("/" + listName);
     });
   }
-  //
-  // if (req.body.list === "Work") {
-  //   list.insertMany(new list({ name: item }));
-  //   defaultItem.push(new list({ name: item }));
-  //   res.redirect("/work");
-  // } else {
-  //   list.insertMany(new list({ name: item }));
-  //   res.redirect("/");
-  // }
 });
 //
 app.post("/delete", (req, res) => {
-  // console.log(req.body.checkbox);
   const checkedItemID = req.body.checkbox;
   list.findById(checkedItemID).then((item) => list.deleteOne(item));
   res.redirect("/");
@@ -136,7 +117,3 @@ app.get("/:customListName", (req, res) => {
     }
   });
 });
-
-// app.post("/:customListName", (req, res) => {
-//   let item = req.body.newItem;
-// });
