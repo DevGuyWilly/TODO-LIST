@@ -5,6 +5,7 @@ const ejs = require("ejs");
 const date = require("./date");
 const mongoose = require("mongoose");
 const list = require("./model/todoModel");
+const _ = require("lodash");
 
 dotenv.config({ path: "./config.env" });
 
@@ -82,8 +83,21 @@ app.post("/", (req, res) => {
 //
 app.post("/delete", (req, res) => {
   const checkedItemID = req.body.checkbox;
-  list.findById(checkedItemID).then((item) => list.deleteOne(item));
-  res.redirect("/");
+  const listName = req.body.listName;
+  if (listName === "Today") {
+    //
+    list.findById(checkedItemID).then((item) => list.deleteOne(item));
+    res.redirect("/");
+  } else {
+    // NEWLY CREATED ROUTE OR EXITING ROUTE
+    ColList.findOneAndUpdate(
+      { name: listName },
+      { $pull: { items: { _id: checkedItemID } } }
+    ).then((foundItem) => {
+      console.log(foundItem);
+      res.redirect("/" + listName);
+    });
+  }
 });
 //
 app.get("/work", (req, res) => {
@@ -98,7 +112,7 @@ app.get("/about", (req, res) => {
 });
 //
 app.get("/:customListName", (req, res) => {
-  const customListTitle = req.params.customListName;
+  const customListTitle = _.capitalize(req.params.customListName);
   ColList.findOne({ name: customListTitle }).then((foundList) => {
     if (!foundList) {
       //create new List
